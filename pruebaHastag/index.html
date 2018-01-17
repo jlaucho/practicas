@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="Prueba Hashtags">
+		<meta name="author" content="Pablo Curiel">
+		<title>Prueba Hashtags</title>
+		<link rel="stylesheet" href="bootstrap.min.css">
+	</head>
+	<style>
+		.hashtag {
+			color: blue;
+		}
+		
+		.invalid {
+			color: red;
+		}
+		
+		[contenteditable=true]:empty:before {
+			content: attr(placeholder);
+			display: block;
+		}
+	</style>
+	<body>
+		<div class="container">
+			<div class="row">
+				<!--<div class="col-md-6 col-md-offset-3">-->
+					<h1 class="page-header text-center">Prueba Hashtags</h1>
+					
+					<div class="form-group">
+						<label class="col-sm-2 control-label">Hashtags:</label>
+						<div class="col-sm-10">
+							<!-- Uso de div con propiedad contenteditable para cambiar el color del texto usando HTML + CSS -->
+							<!-- Revisa el uso de clases en la parte superior del documento -->
+							<div class="form-control" id="hashtags" contenteditable="true" placeholder="#abcdef #abcdef #abcdef #abcdef #abcdef"></div>
+						</div>
+					</div>
+			</div>
+		</div>
+	</body>
+	<script src="jquery-2.2.3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="twitter-text.js" type="text/javascript" charset="utf-8"></script>
+	<script>
+		/*function hexdump(buffer, blockSize) {
+			blockSize = blockSize || 16;
+			var lines = [];
+			var hex = "0123456789ABCDEF";
+			
+			for (var b = 0; b < buffer.length; b += blockSize) {
+				var block = buffer.slice(b, Math.min(b + blockSize, buffer.length));
+				var addr = ("0000" + b.toString(16)).slice(-4);
+				
+				var codes = block.split('').map(function (ch) {
+					var code = ch.charCodeAt(0);
+					return " " + hex[(0xF0 & code) >> 4] + hex[0x0F & code];
+				}).join("");
+				
+				codes += "   ".repeat(blockSize - block.length);
+				var chars = block.replace(/[\x00-\x1F]/g, '.');
+				chars +=  " ".repeat(blockSize - block.length);
+				lines.push(addr + " " + codes + "  " + chars);
+			}
+			
+			return lines.join("\n");
+		}
+		*/
+		$('#hashtags').on('input', function() {
+			// Se remueven las etiquetas HTML del div para obtener el texto ingresado por el usuario
+			var html = $(this).html();
+			//console.log('html: '+html);
+			var text = $("<div/>").html(html).text();
+			//console.log('text: '+ text);
+			if (text == '')
+			{
+				// Necesario para mostrar el placeholder nuevamente. Algunos navegadores ingresan <br> y/o &nbsp; ocultos que cuentan como texto adicional aun cuando no hay nada escrito
+				$(this).empty();
+			} else {
+				//console.log(hexdump(text, 16));
+				
+				// Se hace un split para obtener las palabras separadas por espacios en un arreglo
+				var orig_ht = text;
+				orig_ht = orig_ht.split(' ');
+				//console.log(orig_ht);
+				
+				// Filtro para mas de un espacio entre palabras
+				var ht_nospace = [];
+				$.each(orig_ht, function(k, v) {
+					if (v != '') ht_nospace.push(v);
+				});
+				
+				//console.log(ht_nospace);
+				
+				// Filtro para hashtags que no esten al lado de palabras
+				var ht_noht = [];
+				$.each(ht_nospace, function(k, v) {
+					var tmp = v.split('#');
+					
+					$.each(tmp, function(m, w) {
+						if (w != '') ht_noht.push('#' + w);
+					});
+				});
+				
+				//console.log(ht_noht);
+				
+				// Se llena el div con las palabras resaltadas con color, precedidas por un hashtag
+				$(this).empty();
+				var newHtml = '';
+				$.each(ht_noht, function(k, v) {
+					// Remover &nbsp; de relleno ocultos
+					var tmp = v.replace('\xA0', '');
+					//console.log(hexdump(tmp, 16));
+					newHtml += '<span class="' + (twttr.txt.isValidHashtag(tmp) ? 'hashtag' : 'invalid') + '">' + v + "</span> ";
+				});
+				$(this).html(newHtml);
+				
+				// Establecer posicion del cursor al final del texto
+				var child = $(this).children();
+				if (child.length > 0)
+				{
+					var range = document.createRange();
+					var sel = window.getSelection();
+					range.setStart(child[child.length - 1], 1);
+					range.collapse(true);
+					sel.removeAllRanges();
+					sel.addRange(range);
+					$(this)[0].focus();
+				}
+			}
+		});
+	</script>
+</html>
